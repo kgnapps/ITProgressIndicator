@@ -6,6 +6,11 @@
 //  Copyright (c) 2013 Ilija Tovilo. All rights reserved.
 //
 
+#if !__has_feature(objc_arc)
+#error ARC needs to be enabled!
+#endif
+
+
 #import "ITProgressIndicator.h"
 #import "NSBezierPath+Geometry.h"
 
@@ -55,7 +60,7 @@
     self.lengthOfLine = 6;
     self.numberOfLines = 8;
     self.animationDuration = 0.6;
-    self.isIndeterminate = NO;
+    self.isIndeterminate = YES;
     self.steppedAnimation = YES;
     self.hideWhenStopped = YES;
     self.animates = YES;
@@ -111,12 +116,12 @@
                 lineInstance = [lineInstance rotatedBezierPath:((2 * M_PI) / self.numberOfLines * lineNumber) + M_PI
                                                     aboutPoint:NSMakePoint(NSWidth(r) / 2, NSHeight(r) / 2)];
                 
-                if (!_isIndeterminate) [[self.color colorWithAlphaComponent:1.0 - (1.0 / self.numberOfLines * lineNumber)] set];
+                if (_isIndeterminate) [[self.color colorWithAlphaComponent:1.0 - (1.0 / self.numberOfLines * lineNumber)] set];
                 
                 [lineInstance fill];
             };
             
-            if (self.isIndeterminate) {
+            if (!self.isIndeterminate) {
                 for (NSUInteger i = self.numberOfLines;
                      i > round(self.numberOfLines - (self.numberOfLines * self.progress));
                      i--)
@@ -185,7 +190,7 @@
 }
 
 - (void)reloadVisibility {
-    if (_hideWhenStopped && !_animates && !_isIndeterminate) {
+    if (_hideWhenStopped && !_animates && _isIndeterminate) {
         [self setHidden:YES];
     } else {
         [self setHidden:NO];
@@ -211,7 +216,7 @@
 - (void)setIndeterminate:(BOOL)isIndeterminate {
     _isIndeterminate = isIndeterminate;
     
-    if (_isIndeterminate) {
+    if (!_isIndeterminate) {
         self.animates = NO;
     }
 }
@@ -225,7 +230,7 @@
     
     _progress = progress;
     
-    if (self.isIndeterminate) {
+    if (!self.isIndeterminate) {
         [self reloadIndicatorContent];
     }
 }
